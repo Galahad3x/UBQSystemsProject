@@ -2,6 +2,7 @@
 #include <ESP8266HTTPClient.h>
 #include <WiFiClient.h>
 #include <Wire.h>
+#include <PubSubClient.h>
 
 #include "MAX30105.h"
 #include "heartRate.h"
@@ -11,11 +12,8 @@
 
 const bool TESTMODE = false;
 
-const char* ssid = SSID;
-const char* password = PWD;
-const char* host = "192.168.42.64";
-const uint16_t port = 9090;
-const char* serverName = "http://192.168.4.1/"; // subscriber server
+
+
 
 MAX30105 particleSensor;
 const byte RATE_SIZE = 4; 
@@ -26,28 +24,93 @@ long lastBeat = 0;
 float beatsPerMinute;
 int beatAvg;
 
+// wifi config params
+const char* ssid = SSID;
+const char* pass = PWD;
+
+// mqtt config params
+const char* mqtt_server = "172.20.10.3";
+const int port = 1883;
+const char* topic = "data/heartRate";
+
+// data send config params
+unsigned int value = 0;
+unsigned long lastTime = 0;
+unsigned long timerDelay = 5000; // Timeer 5 seconds
+
+
+// clients
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void send_value(int value) {
+  Serial.println(WiFi.localIP());
+  Serial.print("Publish message  ");
+  Serial.println(value);
+  if (!client.connected()) {
+    Serial.println("Error mqtt conexion \n");
+  } else {
+      Serial.println(String("Sending " + String(value)).c_str());
+      client.publish(topic, String(value).c_str());
+  }
+
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived [");
+  Serial.print(topic);  
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+}
+
+void setup_wifi() {
+  delay(1000);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+ 
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+ 
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+}
+
+void reconnect() {
+  while (!client.connected()) {
+    String client_id = "ESP32-dataSubscriber";
+    client_id += String(random(0xffff), HEX);
+    Serial.println("Try to connect to mqtt broker");
+    if(client.connect(client_id.c_str())) {
+      Serial.println("Client connected");
+      client.publish("data/heartRate", String(-1).c_str());
+    } else{
+      Serial.println("Error to connect mqtt");
+      delay(5000);
+    }
+  }
+}
+
+
 void publish(int beatsPerMinute) {
-  if(WiFi.status()== WL_CONNECTED){
-      WiFiClient client;
-      HTTPClient http;
-      
-      // Your Domain name with URL path or IP address with path
-      http.begin(client, serverName);
-
-      // Specify content-type header
-      http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-      // Data to send with HTTP POST
-      String httpRequestData = "value=";
-      httpRequestData += beatsPerMinute;   
-
-      // Send HTTP POST request
-      int httpResponseCode = http.POST(httpRequestData);
-      
-      Serial.print("HTTP Response code: ");
-      Serial.println(httpResponseCode);
-        
-      // Free resources
-      http.end();
+  Serial.println(WiFi.localIP());
+  Serial.print("Publish message  ");
+  Serial.println(beatsPerMinute);
+  if (!client.connected()) {
+    Serial.println("Error mqtt conexion \n");
+  } else {
+    Serial.println(String("Sending " + String(beatsPerMinute)).c_str());
+    client.publish(topic, String(beatsPerMinute).c_str());
+  }
 }
 
 void setup() {
@@ -58,13 +121,11 @@ void setup() {
   Serial.print("Intentant connectar a ");
   Serial.println(ssid);
 
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  init_display();
+  setup_wifi();
+  // setup mqtt
+  client.setServer(mqtt_server, port);
+  client.setCallback(callback);
 
   Serial.println("");
   Serial.println("WiFi connected");
