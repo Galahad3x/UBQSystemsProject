@@ -9,6 +9,7 @@
 
 #define SSID "Test"
 #define PWD "Test1234"
+#define I2C_SPEED_FAST 400000
 
 const bool TESTMODE = false;
 
@@ -116,7 +117,7 @@ void publish(int beatsPerMinute) {
 void setup() {
   Serial.begin(115200); 
 
-  Wire.begin(2,0);
+  Wire.begin(0, 2);
 
   Serial.print("Intentant connectar a ");
   Serial.println(ssid);
