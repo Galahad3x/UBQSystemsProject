@@ -11,17 +11,16 @@ void subscriberCallback(char* topic, byte* payload, unsigned int length) {
   int value = 0;
   //struct StationMessage message;
   struct RiskEvaluatorMessage message;
+  // at the moment unique topic
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.println("] ");
+  // cast message to int
   for (int i = 0; i < length; i++) {
-    //Serial.print((char)payload[i]);
     value += (int)(payload[i] - '0') * pow(10, length - i - 1);
   }
-  //current_value = atoi((char*)payload);
-  //update_display();
   message.heartRate = value;
-  //xQueueSend(stationQueue, &message, ( TickType_t )0);
+  // send data to the risk evaluator
   xQueueSend(riskEvaluatorQueue, &message, ( TickType_t )0);
 }
 
@@ -50,6 +49,6 @@ void data_subscriber(void* taskArgs) {
       reconnect();
     }
     client.loop();
-    delay(10);
+    delay(1000);
   }
 }

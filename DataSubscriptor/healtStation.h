@@ -1,4 +1,3 @@
-#include "esp32-hal-gpio.h"
 #include <WiFi.h>
 #include <WebServer.h>
 #include <Wire.h>
@@ -7,9 +6,12 @@
 #include <cstring>
 #include <Servo.h>
 
+#define SERVO_PORT 0
+
 
 #ifndef HEALT_STATION
 #define HEALT_STATION
+
 
 enum RiskLevel{
   OK_LEVEL,

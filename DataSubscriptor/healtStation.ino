@@ -8,13 +8,14 @@
 #include "healtStation.h"
 
 
-const char* ssid = "test";
-const char* pass = "test";
+// const char* ssid  = "Test";
+// const char* password  = "Test1234";
+const char* ssid = "alex";
+const char* pass = "ar6mKy3kmertUPO2134ZxD5";
 
 
 // mqtt config params
 const char* mqtt_server = "172.20.10.3";
-//const char* mqtt_server = "test.mosquitto.org";
 const int port = 1883;
 
 void setup_wifi() {
@@ -56,7 +57,7 @@ void setup() {
   // start data subscriber task
   xTaskCreatePinnedToCore(data_subscriber, "data_subscriber", 2048, NULL, 1, NULL, 1);
   xTaskCreatePinnedToCore(output_station, "output_station", 2048, NULL, 1, NULL, 0);
-  xTaskCreatePinnedToCore(risk_evaluator, "output_station", 2048, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(risk_evaluator, "risk_evaluator", 2048, NULL, 1, NULL, 0);
 }
 
 void loop() {}
