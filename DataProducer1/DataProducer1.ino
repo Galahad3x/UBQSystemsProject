@@ -7,8 +7,8 @@
 #include "MAX30105.h"
 #include "heartRate.h"
 
-#define SSID "Test"
-#define PWD "Test1234"
+#define SSID "Slippin Wifi"
+#define PWD "bettercallsaul"
 #define I2C_SPEED_FAST 400000
 
 const bool TESTMODE = false;
@@ -30,7 +30,7 @@ const char* ssid = SSID;
 const char* pass = PWD;
 
 // mqtt config params
-const char* mqtt_server = "172.20.10.3";
+const char* mqtt_server = "test.mosquitto.org";
 const int port = 1883;
 const char* topic = "data/heartRate";
 
@@ -122,7 +122,7 @@ void setup() {
   Serial.print("Intentant connectar a ");
   Serial.println(ssid);
 
-  init_display();
+  //init_display();
   setup_wifi();
   // setup mqtt
   client.setServer(mqtt_server, port);
@@ -169,34 +169,6 @@ void loop() {
     } 
 
     publish(beatsPerMinute);
-  }
-
-  if (TESTMODE)  {
-      WiFiClient client;
-      if (TESTMODE && !client.connect(host, port)) {
-          Serial.println("connection failed");
-          delay(5000);
-          return;
-      }
-    if (client.connected()) {
-      Serial.println("sending data to server");
-      client.print("IR=");
-      client.print(irValue);
-      client.print(", BPM=");
-      client.print(beatsPerMinute);
-      client.print(", Avg BPM=");
-      client.print(beatAvg);
-
-      if (irValue < 50000)
-        client.print(" No finger?");
-
-      client.println();
-    }
-
-    Serial.println();
-    Serial.println("closing connection");
-    client.stop();
-
   }
 
   delay(100); // execute once every 5 minutes, don't flood remote service
