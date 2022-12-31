@@ -59,5 +59,5 @@ void loop() {
     client.println();     
   }
   client.stop();
-  delay(3000);
+  delay(2000);
 }
