@@ -7,15 +7,8 @@
 #include "MAX30105.h"
 #include "heartRate.h"
 
-<<<<<<< HEAD
-#define SSID "Slippin Wifi"
-#define PWD "bettercallsaul"
-#define I2C_SPEED_FAST 400000
-=======
 #define SSID "Test"
 #define PWD "Test1234"
-
->>>>>>> c5eac8c5648825d3b3c8aa453c578f4a1deaa4a3
 
 const bool TESTMODE = false;
 

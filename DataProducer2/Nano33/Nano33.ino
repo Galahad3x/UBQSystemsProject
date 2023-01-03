@@ -96,16 +96,16 @@ void loop() {
     Serial.print(result.timing.anomaly);
     Serial.print(" ms.)");
     Serial.println(": ");
-    int bestval = 0;
+    float bestval = 0.0;
     char bestlabel = 'c';
     for (size_t ix = 0; ix < EI_CLASSIFIER_LABEL_COUNT; ix++) {
         Serial.print("    ");
         Serial.print(result.classification[ix].label);
         Serial.print(": ");
-        Serial.println(result.classification[ix].value);
+        Serial.println(result.classification[ix].value);        
         if (result.classification[ix].value > bestval){
           bestval = result.classification[ix].value;
-          bestlabel = result.classification[ix].label[0];          
+          bestlabel = result.classification[ix].label[0];
         }
     }
     value = bestlabel;
