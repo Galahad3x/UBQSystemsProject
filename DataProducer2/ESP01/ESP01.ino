@@ -15,7 +15,7 @@ const uint16_t port = 9090;
 
 // topics definitions
 const char* mvTOPIC = "data/moviment";
-const char* messageTopic = "message/finger";
+const char* messageTopic = "message/moviment";
 
 // Mqtt client definition
 WiFiClient espClient;
