@@ -1,6 +1,7 @@
 // CODI DEL ESP-01
 
 #include <ESP8266WiFi.h>
+#include <PubSubClient.h>
 #include <Wire.h>
 
 #define SSID "Slippin Wifi"
@@ -10,8 +11,8 @@
 const char* ssid = SSID;
 const char* password = PWD;
 
-const char* host = "192.168.212.64";
-const uint16_t port = 9090;
+const char* host = "test.mosquitto.org";
+const uint16_t port = 1883;
 
 // topics definitions
 const char* mvTOPIC = "data/moviment";
@@ -49,13 +50,12 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 void publish(char movimentType) {
   Serial.println(WiFi.localIP());
-  Serial.print("Publish message  ");
-  Serial.println(beatsPerMinute);
   if (!client.connected()) {
     Serial.println("Error mqtt conexion \n");
+    reconnect();
   } else {
     Serial.println(String("Sending " + String(movimentType)).c_str());
-    client.publish(topic, String(movimentType).c_str());
+    client.publish(mvTOPIC, String(movimentType).c_str());
   }
 }
 
@@ -90,14 +90,9 @@ void setup() {
   Serial.begin(9600); /* begin serial for debug */
   Wire.begin(0, 2);                /* join i2c bus with address 8 */
   setup_wifi();
-  // WiFiClient client;
-  // if (!client.connect(host, port)) {
-  //   Serial.println("connection failed");
-  //   delay(5000);
-  //   return;
-  // }
-  client.setServer(mqtt_server, port);
+  client.setServer(host, port);
   client.setCallback(callback);
+  client.publish(mvTOPIC, String('x').c_str());
 }
 
 
@@ -105,33 +100,12 @@ void loop() {
   Wire.requestFrom(8, 1);
   while(Wire.available()){
     char c = Wire.read();
-    Serial.print("Moviment: ")
+    Serial.print("Moviment: ");
     Serial.println(c);
-    if (c != 't') {
+    /*if (c != 't') {
       publish(c);
-    }
+    }*/
+    publish(c);
   }
+  delay(1000);
 }
-
-// void loop() {
-//   WiFiClient client;
-//   if (!client.connect(host, port)) {
-//     Serial.println("connection failed");
-//     delay(5000);
-//     return;
-//   }
-//   Wire.requestFrom(8, 1);
-//   while(Wire.available()){
-//     char c = Wire.read();
-//     Serial.print(c);
-//     if (client.connected()) {
-//       client.print(c);     
-//     }
-//   }
-//   Serial.println();
-//   if (client.connected()) {
-//     client.println();     
-//   }
-//   client.stop();
-//   delay(100);
-// }
