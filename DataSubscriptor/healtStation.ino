@@ -8,17 +8,10 @@
 #include "healtStation.h"
 
 
-// const char* ssid  = "Test";
-// const char* password  = "Test1234";
-// const char* ssid = "alex";
-// const char* pass = "ar6mKy3kmertUPO2134ZxD5";
-const char* ssid = "MOVISTAR_6910";
-const char* pass = "SM8q9gwWF8XGpz78dFUB";
-
+const char* ssid  = "Test";
+const char* password  = "Test1234";
 
 // mqtt config params
-// const char* mqtt_server = "172.20.10.3";
-//const char* mqtt_server = "192.168.1.37";
 const char* mqtt_server = "test.mosquitto.org";
 const int port = 1883;
 
