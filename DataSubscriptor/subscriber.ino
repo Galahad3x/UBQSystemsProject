@@ -3,27 +3,47 @@
 #include <PubSubClient.h>
 
 #include "healtStation.h"
+#include <string.h>
+
+const char* hrTOPIC = "data/heartRate";
+const char* mvTOPIC = "data/moviment";
+
+int heartRate = 0;
+
+void process_hr_message(byte* payload, unsigned int length) {
+  struct RiskEvaluatorMessage message = {HEART_RATE, -1, NULL };
+  // cast message to int
+  int value = 0;
+  for (int i = 0; i < length; i++) {
+    value += (int)(payload[i] - '0') * pow(10, length - i - 1);
+  }
+  // send data to the risk evaluator
+  Serial.print("");
+  message.heartRate = value;
+  xQueueSend(riskEvaluatorQueue, &message, (TickType_t)0);
+}
 
 
-const char* topic = "data/heartRate";
+void process_moviment_message(byte* payload, unsigned int length) {
+  struct RiskEvaluatorMessage message = {MOTION, -1, NULL };
+  // ... //
+  Serial.print("Motion=");
+  Serial.println((char)payload[0]);
+  message.movimentStatus = (char *)payload;
+  xQueueSend(riskEvaluatorQueue, &message, (TickType_t)0);
+}
 
 void subscriberCallback(char* topic, byte* payload, unsigned int length) {
-  int value = 0;
-  //struct StationMessage message;
-  struct RiskEvaluatorMessage message;
   // at the moment unique topic
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.println("] ");
-  // cast message to int
-  for (int i = 0; i < length; i++) {
-    value += (int)(payload[i] - '0') * pow(10, length - i - 1);
+  if (String(topic) == hrTOPIC) {
+    process_hr_message(payload, length);
+  } else {
+    process_moviment_message(payload, length);
   }
-  message.heartRate = value;
-  // send data to the risk evaluator
-  xQueueSend(riskEvaluatorQueue, &message, ( TickType_t )0);
 }
-
 
 void reconnect() {
   while (!client.connected()) {
@@ -31,13 +51,15 @@ void reconnect() {
     client_id += String(random(0xffff), HEX);
     Serial.println("Try to connect to mqtt broker");
     if (client.connect(client_id.c_str())) {
-      client.subscribe(topic);
-      Serial.print("Client connected to the topic");
-      Serial.println(topic);
-
+      client.subscribe(hrTOPIC);
+      Serial.print("Client connected to the topic data/heartRate");
+      Serial.println(hrTOPIC);
+      Serial.print("Client connected to the topic data/moviment");
+      Serial.println(mvTOPIC);
+      client.subscribe(mvTOPIC);
     } else {
       Serial.println("Error to connect mqtt");
-      delay(5000);
+      vTaskDelay(5000);
     }
   }
 }
@@ -49,6 +71,6 @@ void data_subscriber(void* taskArgs) {
       reconnect();
     }
     client.loop();
-    delay(1000);
+    vTaskDelay(600);
   }
 }

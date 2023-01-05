@@ -13,11 +13,17 @@
 #define HEALT_STATION
 
 
+enum BiometricDataType{
+  HEART_RATE,
+  MOTION,
+};
+
 enum RiskLevel{
   OK_LEVEL,
   WORRY_LEVEL,
   ALERT_LEVEL,
   VERY_URGENT_LEVEL,
+  NOT_LEVEL,
 };
 
 
@@ -28,7 +34,9 @@ struct StationMessage {
 };
 
 struct RiskEvaluatorMessage {
+  BiometricDataType biometricDataType;
   int heartRate;
+  char *movimentStatus;
 };
 
 
@@ -44,4 +52,7 @@ Servo servo;
 // mesage queues definitions
 QueueHandle_t stationQueue;
 QueueHandle_t riskEvaluatorQueue;
+
+// semaphores definitions
+SemaphoreHandle_t RDataInSemaphore;
 #endif

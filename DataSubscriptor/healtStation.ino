@@ -10,12 +10,16 @@
 
 // const char* ssid  = "Test";
 // const char* password  = "Test1234";
-const char* ssid = "alex";
-const char* pass = "ar6mKy3kmertUPO2134ZxD5";
+// const char* ssid = "alex";
+// const char* pass = "ar6mKy3kmertUPO2134ZxD5";
+const char* ssid = "MOVISTAR_6910";
+const char* pass = "SM8q9gwWF8XGpz78dFUB";
 
 
 // mqtt config params
-const char* mqtt_server = "172.20.10.3";
+// const char* mqtt_server = "172.20.10.3";
+//const char* mqtt_server = "192.168.1.37";
+const char* mqtt_server = "test.mosquitto.org";
 const int port = 1883;
 
 void setup_wifi() {
@@ -53,6 +57,9 @@ void setup() {
   // queues creation
   stationQueue = xQueueCreate(10, sizeof(struct StationMessage));
   riskEvaluatorQueue = xQueueCreate(10, sizeof(struct RiskEvaluatorMessage));
+
+  // semaphores creation
+  RDataInSemaphore = xSemaphoreCreateBinary();
 
   // start data subscriber task
   xTaskCreatePinnedToCore(data_subscriber, "data_subscriber", 2048, NULL, 1, NULL, 1);
