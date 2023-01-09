@@ -7,9 +7,12 @@
 
 #include "healtStation.h"
 
+#define configUSE_PREEMPTION 0
 
-const char* ssid  = "Test";
-const char* password  = "Test1234";
+// wifi params
+const char* ssid = "MOVISTAR_6910";
+const char* pass = "SM8q9gwWF8XGpz78dFUB";
+
 
 // mqtt config params
 const char* mqtt_server = "test.mosquitto.org";
@@ -51,13 +54,11 @@ void setup() {
   stationQueue = xQueueCreate(10, sizeof(struct StationMessage));
   riskEvaluatorQueue = xQueueCreate(10, sizeof(struct RiskEvaluatorMessage));
 
-  // semaphores creation
-  RDataInSemaphore = xSemaphoreCreateBinary();
 
   // start data subscriber task
-  xTaskCreatePinnedToCore(data_subscriber, "data_subscriber", 2048, NULL, 1, NULL, 1);
-  xTaskCreatePinnedToCore(output_station, "output_station", 2048, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(data_subscriber, "data_subscriber", 2048, NULL, 1, NULL, 0);
   xTaskCreatePinnedToCore(risk_evaluator, "risk_evaluator", 2048, NULL, 1, NULL, 0);
+  xTaskCreatePinnedToCore(output_station, "output_station", 2048, NULL, 1, NULL, 1);
 }
 
 void loop() {}

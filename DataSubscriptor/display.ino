@@ -2,28 +2,15 @@
 #include <LiquidCrystal_I2C.h>
 #include "healtStation.h"
 
-// Make custom characters:
-byte Heart[] = {
-  B00000,
-  B01010,
-  B11111,
-  B11111,
-  B01110,
-  B00100,
-  B00000,
-  B00000
-};
+char *RISKS[4] = {"OK", "WORRY","ALERT","URGENT"};
 
 void init_display() {
   lcd.init();
-  // create custom characters
-  lcd.createChar(0, Heart);
   // start windows content
   lcd.home();
   lcd.backlight();
   lcd.print("Waiting for data");
 }
-
 
 void init_servo() {
   servo.attach(SERVO_PORT);
@@ -31,21 +18,25 @@ void init_servo() {
 
 void update_servo(RiskLevel risk) {
   int value = risk * 60;
-  long degrees = (int)map((long)value, 0, 180, 10, 170);
+  // limit angles to reduce times the servo blocks in 0 or 180
+  long degrees = (int)map((long)value, 0, 180, 10, 170); 
   Serial.print("Rotate servo ");
   Serial.println(degrees);
   servo.write(degrees);
+  vTaskDelay(250 * xTicksFactor);
 }
 
-void display(int value, char *moviment) {
+void display(int value, char *moviment, RiskLevel risk) {
   lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("BPM=");
+  lcd.printf("BPM=%d", value);
+  lcd.setCursor(4, 0);
   lcd.print(value);
   lcd.setCursor(0,1);
-  lcd.print("Motion=");
-  lcd.print(moviment);
-  lcd.setCursor(0, 0);
+  lcd.printf("MV=%s", moviment);
+  if (risk != NOT_LEVEL) {
+    lcd.printf(",Risk=%s", RISKS[(int)risk]);
+  }
+  vTaskDelay(500 * xTicksFactor);
 }
 
 
@@ -59,9 +50,12 @@ void output_station(void* taskArgs) {
         Serial.print("Risk=");
         Serial.println(dataMessage.risk);
         update_servo(dataMessage.risk);
-      }
-      display(dataMessage.heartRate, "g");
+      } 
+      char *moviment = (char *)(dataMessage.risk == NOT_LEVEL ? "-" : dataMessage.moviment);
+      Serial.print("Moviment=");
+      Serial.println(moviment);
+      display(dataMessage.heartRate, moviment, dataMessage.risk);
     }
-    vTaskDelay(4000);
+    vTaskDelay(1000 / portTICK_RATE_MS);
   }
 }

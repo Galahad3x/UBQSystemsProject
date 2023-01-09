@@ -102,10 +102,9 @@ void loop() {
     char c = Wire.read();
     Serial.print("Moviment: ");
     Serial.println(c);
-    /*if (c != 't') {
+    if (c != 't') {
       publish(c);
-    }*/
-    publish(c);
+    }
   }
   delay(1000);
 }

@@ -71,6 +71,6 @@ void data_subscriber(void* taskArgs) {
       reconnect();
     }
     client.loop();
-    vTaskDelay(600);
+    vTaskDelay(600 * xTicksFactor);
   }
 }

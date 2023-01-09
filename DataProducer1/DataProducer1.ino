@@ -10,10 +10,6 @@
 #define SSID "Test"
 #define PWD "Test1234"
 
-const bool TESTMODE = false;
-
-
-
 
 MAX30105 particleSensor;
 const byte RATE_SIZE = 4; 
@@ -25,10 +21,8 @@ float beatsPerMinute;
 int beatAvg;
 
 // wifi config params
-// const char* ssid = SSID;
-// const char* pass = PWD;
-const char* ssid = "alex";
-const char* pass = "ar6mKy3kmertUPO2134ZxD5";
+const char* ssid = SSID;
+const char* pass = PWD;
 
 // mqtt config params
 const char* mqtt_server = "test.mosquitto.org";
@@ -151,7 +145,6 @@ void setup() {
   {
     Serial.println("MAX30105 was not found. Please check wiring/power. ");
     messageMQTT("Error MAX30105");
-    //while (1);
   }
 
   Serial.println("Place your index finger on the sensor with steady pressure.");
@@ -162,9 +155,7 @@ void setup() {
 }
 
 void loop() {
-  // Use WiFiClient class to create TCP connections
   // Calculate BPM
-  //statusMessage("alive");
   long irValue = particleSensor.getIR();
   if (checkForBeat(irValue) == true) {
     //We sensed a beat!
@@ -196,34 +187,4 @@ void loop() {
    
 
   delay(timerDelay);
-
-  // if (TESTMODE)  {
-  //     WiFiClient client;
-  //     if (TESTMODE && !client.connect(host, port)) {
-  //         Serial.println("connection failed");
-  //         delay(5000);
-  //         return;
-  //     }
-  //   if (client.connected()) {
-  //     Serial.println("sending data to server");
-  //     client.print("IR=");
-  //     client.print(irValue);
-  //     client.print(", BPM=");
-  //     client.print(beatsPerMinute);
-  //     client.print(", Avg BPM=");
-  //     client.print(beatAvg);
-
-  //     if (irValue < 50000)
-  //       client.print(" No finger?");
-
-  //     client.println();
-  //   }
-
-  //   Serial.println();
-  //   Serial.println("closing connection");
-  //   client.stop();
-
-  // }
-
- // execute once every 5 minutes, don't flood remote service
 }

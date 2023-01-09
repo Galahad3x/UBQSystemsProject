@@ -56,17 +56,21 @@ void calculate_risk(int heartRate, bool okMoviment) {
   // send results to the station
   stationMessage.heartRate = heartRate;
   stationMessage.risk = risk;
+  stationMessage.moviment = (char *)(okMoviment ? "g" : "b");
   Serial.println("Send the results to the station");
   xQueueSend(stationQueue, &stationMessage, (TickType_t)0);
 }
 
-void risk_evaluator(void* taskArgs) {
+void risk_evaluator(void *taskArgs) {
   struct RiskEvaluatorMessage message;
   struct StationMessage stationMessage;
 
   int heartRate = -1;
   char *movimentStatus = NULL;
+  long lastBeat = millis();
+  bool update = false;
   while (1) {
+    long delta = millis() - lastBeat;
     // if have new data update the information
     if (xQueueReceive(riskEvaluatorQueue, &message, (TickType_t)10) == pdTRUE) {
       // update risk evaluator data
@@ -74,27 +78,35 @@ void risk_evaluator(void* taskArgs) {
         Serial.print("Arrive heart of rate value=");
         Serial.println(message.heartRate);
         heartRate = (heartRate == 0 || heartRate == -1
-                       ? message.heartRate 
-                       : (int)(0.7 * message.heartRate + 0.3 * heartRate)); // weight mean
-       
-      } else if (message.biometricDataType == MOTION) {
-        movimentStatus = message.movimentStatus;
-      }
-      // update only the hear rate info in the display
-      if (heartRate !=-1 && movimentStatus==NULL) {
+                       ? message.heartRate
+                       : (int)(0.8 * message.heartRate + 0.2 * heartRate));  // weight mean
         stationMessage.heartRate = heartRate;
         stationMessage.risk = NOT_LEVEL;
-        xQueueSend(stationQueue, &stationMessage, (TickType_t)0);
-      }
-     
+        stationMessage.moviment = NULL;
+        update = true;
+      } else if (message.biometricDataType == MOTION) {
+        stationMessage.heartRate = heartRate;
+        stationMessage.risk = NOT_LEVEL;
+        stationMessage.moviment = NULL;
+        movimentStatus = message.movimentStatus;
+        update = true;
+      }    
+      // if have updated data calculate risk
+      if (heartRate != -1 && movimentStatus != NULL) {
+        bool isOkMoviment = *movimentStatus == 'g';
+        calculate_risk(heartRate, isOkMoviment);
+        // reset moviment status data
+        movimentStatus = NULL;
+        update=false; // reset status
+        lastBeat = millis();
+      } 
     }
-    // if have updated data calculate risk
-    if (heartRate != -1 && movimentStatus != NULL) {
-      bool isOkMoviment = *movimentStatus == 'g';
-      calculate_risk(heartRate, isOkMoviment);
-      // reset moviment status data
-      movimentStatus = NULL;
+    if(update && delta > 2000) {
+      // send update info
+      xQueueSend(stationQueue, &stationMessage, (TickType_t)0);
+      update = false;
+      lastBeat = millis();
     }
-    vTaskDelay(2000);
+    vTaskDelay(800 * xTicksFactor);
   }
 }

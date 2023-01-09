@@ -12,6 +12,7 @@
 #ifndef HEALT_STATION
 #define HEALT_STATION
 
+const TickType_t xTicksFactor = 1 / portTICK_PERIOD_MS;
 
 enum BiometricDataType{
   HEART_RATE,
@@ -30,6 +31,7 @@ enum RiskLevel{
 // messages types definitions
 struct StationMessage {
   int heartRate;
+  char *moviment;
   RiskLevel risk;
 };
 
@@ -52,7 +54,4 @@ Servo servo;
 // mesage queues definitions
 QueueHandle_t stationQueue;
 QueueHandle_t riskEvaluatorQueue;
-
-// semaphores definitions
-SemaphoreHandle_t RDataInSemaphore;
 #endif
