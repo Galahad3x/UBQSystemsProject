@@ -21,6 +21,7 @@ const char* messageTopic = "message/moviment";
 // Mqtt client definition
 WiFiClient espClient;
 PubSubClient client(espClient);
+char lastMoviment = 't';
 
 void reconnect() {
   while (!client.connected()) {
@@ -102,8 +103,9 @@ void loop() {
     char c = Wire.read();
     Serial.print("Moviment: ");
     Serial.println(c);
-    if (c != 't') {
+    if (c != 't' && c!=lastMoviment) {
       publish(c);
+      lastMoviment = c;
     }
   }
   delay(1000);
